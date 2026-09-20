@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Photo Print Calculator</title>
+    
+    <!-- Favicon Integration -->
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            850: '#151f32',
+                            900: '#0f172a',
+                            950: '#090d16'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom smooth scroll & transitions */
+        * { transition-property: color, background-color, border-color, transform, box-shadow; transition-duration: 200ms; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <header class="border-b border-slate-800/80 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-camera-retro text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">PhotoPrint Calc</h1>
+                    <p class="text-xs text-slate-400 hidden sm:block">Professional Print Resolution & Pixel Calculator (300 DPI Standard)</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button id="unitToggleBtn" onclick="toggleUnitSystem()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 border border-slate-700/60 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-ruler-combined text-indigo-400"></i>
+                    <span id="unitToggleText">Unit: Inches (in)</span>
+                </button>
+                <button onclick="openInfoModal()" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center border border-slate-700/60 transition" title="About DPI & Print Guide">
+                    <i class="fa-solid fa-circle-question"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Tab Navigation -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800 flex space-x-2 shadow-inner">
+                <button onclick="switchTab('inchesToPixels')" id="tabInchesToPixels" class="px-5 py-2.5 rounded-xl text-sm font-medium transition flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-600/30">
+                    <i class="fa-solid fa-ruler"></i>
+                    <span>Inches to Pixels</span>
+                </button>
+                <button onclick="switchTab('resolutionToPrint')" id="tabResolutionToPrint" class="px-5 py-2.5 rounded-xl text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/50">
+                    <i class="fa-solid fa-image"></i>
+                    <span>Resolution to Max Print</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Notification Toast -->
+        <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-medium">
+            <i class="fa-solid fa-circle-check text-lg"></i>
+            <span id="toastMessage">Copied successfully!</span>
+        </div>
+
+        <!-- SECTION 1: INCHES TO PIXELS -->
+        <div id="sectionInchesToPixels" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left Column: Inputs & Presets -->
+            <div class="lg:col-span-7 bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-indigo-400"></i>
+                        Dimension & Resolution Inputs
+                    </h2>
+                    <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">Base DPI: 300</span>
+                </div>
+
+                <!-- Presets -->
+                <div class="mb-6">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Standard Photo Presets</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2" id="presetButtons">
+                        <button onclick="applyPreset(4, 6)" class="preset-btn px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">4 × 6 in</button>
+                        <button onclick="applyPreset(5, 7)" class="preset-btn px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">5 × 7 in</button>
+                        <button onclick="applyPreset(8, 10)" class="preset-btn px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">8 × 10 in</button>
+                        <button onclick="applyPreset(11, 14)" class="preset-btn px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">11 × 14 in</button>
+                        <button onclick="applyPreset(16, 20)" class="preset-btn px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">16 × 20 in</button>
+                        <button onclick="applyPreset(24, 36)" class="preset-btn px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">24 × 36 in</button>
+                    </div>
+                </div>
+
+                <!-- Custom Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label id="labelWidthIn" class="block text-xs font-medium text-slate-300">Width (Inches)</label>
+                            <span class="text-[10px] text-slate-500">Min: 0.5 - Max: 300</span>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="inputWidthInches" step="0.1" min="0.1" value="6" oninput="calculateInchesToPixels()" class="w-full bg-slate-950/60 border border-slate-700/80 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 text-xs font-semibold unit-label-in">in</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1.5">
+                            <label id="labelHeightIn" class="block text-xs font-medium text-slate-300">Height (Inches)</label>
+                            <span class="text-[10px] text-slate-500">Min: 0.5 - Max: 300</span>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="inputHeightInches" step="0.1" min="0.1" value="4" oninput="calculateInchesToPixels()" class="w-full bg-slate-950/60 border border-slate-700/80 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 text-xs font-semibold unit-label-in">in</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DPI Slider & Fine Control -->
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-2xl p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-medium text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullseye text-indigo-400"></i>
+                            Target Resolution (DPI / PPI)
+                        </label>
+                        <span id="dpiValueDisplay" class="text-xs font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">300 DPI</span>
+                    </div>
+                    <input type="range" id="inputDpi" min="72" max="600" step="1" value="300" oninput="updateDpiDisplay()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                    <div class="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <span>72 DPI (Web/Draft)</span>
+                        <span>150 DPI (Standard)</span>
+                        <span>300 DPI (High Quality Print)</span>
+                        <span>600 DPI (Fine Art)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Results & Copy to Clipboard -->
+            <div class="lg:col-span-5 bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800/90 rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-48 h-48 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-square-poll-vertical text-indigo-400"></i>
+                    Required Pixel Output
+                </h2>
+
+                <!-- Main Pixel Display -->
+                <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 mb-6 text-center relative group">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-widest block mb-1">Exact Dimensions Needed</span>
+                    <div class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight my-2" id="resPixelOutput">1800 × 1200</div>
+                    <span class="text-xs text-indigo-400 font-medium" id="resPixelTotal">2.16 Megapixels</span>
+                    
+                    <button onclick="copyToClipboard('resPixelOutput')" class="absolute top-3 right-3 w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center opacity-80 hover:opacity-100 transition shadow" title="Copy Pixel Dimensions">
+                        <i class="fa-solid fa-copy text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Specs List -->
+                <div class="space-y-3 mb-6">
+                    <div class="flex justify-between items-center py-2.5 border-b border-slate-800/60 text-sm">
+                        <span class="text-slate-400">Aspect Ratio</span>
+                        <span id="resAspectRatio" class="font-semibold text-white">3:2 (1.50)</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2.5 border-b border-slate-800/60 text-sm">
+                        <span class="text-slate-400">Physical Size</span>
+                        <span id="resPhysicalSize" class="font-semibold text-white">6.0 × 4.0 inches (15.2 × 10.2 cm)</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2.5 border-b border-slate-800/60 text-sm">
+                        <span class="text-slate-400">Print Quality Tier</span>
+                        <span id="resQualityTier" class="font-semibold text-emerald-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check text-xs"></i> Museum / High Grade
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Copy Specs Button -->
+                <button id="copyBtnInches" onclick="copyFullSpecs('inchesToPixels')" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-medium text-white shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-copy"></i>
+                    <span id="copyBtnInchesText">Output Specs to Clipboard</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SECTION 2: RESOLUTION TO MAX PRINT SIZE -->
+        <div id="sectionResolutionToPrint" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left Column: Inputs & Camera Presets -->
+            <div class="lg:col-span-7 bg-slate-900/60 border border-slate-800/80 rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-sm">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-camera text-indigo-400"></i>
+                        Image Resolution & Megapixels
+                    </h2>
+                    <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">Standard 300 DPI</span>
+                </div>
+
+                <!-- Camera / MP Presets -->
+                <div class="mb-6">
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">Camera / Megapixel Presets</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <button onclick="applyResPreset(4000, 3000)" class="px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">12 MP (4000×3000)</button>
+                        <button onclick="applyResPreset(6000, 4000)" class="px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">24 MP (6000×4000)</button>
+                        <button onclick="applyResPreset(8256, 5504)" class="px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">45 MP (8256×5504)</button>
+                        <button onclick="applyResPreset(1920, 1080)" class="px-3 py-2 rounded-xl bg-slate-800/70 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-slate-700/60 text-xs font-medium text-slate-300 transition text-center">Full HD (1920×1080)</button>
+                    </div>
+                </div>
+
+                <!-- Custom Resolution Inputs -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Pixel Width (px)</label>
+                        <div class="relative">
+                            <input type="number" id="inputPixelWidth" min="100" max="50000" value="6000" oninput="calculateResolutionToPrint()" class="w-full bg-slate-950/60 border border-slate-700/80 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 text-xs font-semibold">px</div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1.5">Pixel Height (px)</label>
+                        <div class="relative">
+                            <input type="number" id="inputPixelHeight" min="100" max="50000" value="4000" oninput="calculateResolutionToPrint()" class="w-full bg-slate-950/60 border border-slate-700/80 rounded-xl px-4 py-3 text-white font-medium focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-slate-400 text-xs font-semibold">px</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Image File Info / Aspect Ratio indicator -->
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs text-slate-400 block mb-0.5">Calculated Megapixels</span>
+                        <span id="maxMpDisplay" class="text-lg font-bold text-white">24.0 MP</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block mb-0.5">Image Ratio</span>
+                        <span id="maxRatioDisplay" class="text-lg font-bold text-white">3:2</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Max Print Results at 300, 150, 72 DPI -->
+            <div class="lg:col-span-5 bg-gradient-to-b from-slate-900/90 to-slate-900/50 border border-slate-800/90 rounded-3xl p-6 sm:p-8 shadow-xl backdrop-blur-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-48 h-48 bg-violet-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <h2 class="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-print text-indigo-400"></i>
+                    Max Print Size Analysis
+                </h2>
+
+                <!-- 300 DPI Recommendation (Primary) -->
+                <div class="bg-slate-950/80 border border-indigo-500/30 rounded-2xl p-5 mb-4 relative">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-xs font-semibold text-indigo-400 uppercase tracking-widest">Maximum High-Quality Print</span>
+                        <span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded font-bold">300 DPI</span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight my-2" id="print300Size">20.0 × 13.3 inches</div>
+                    <span class="text-xs text-slate-400" id="print300Metric">50.8 × 33.9 cm (Gallery Standard)</span>
+                </div>
+
+                <!-- Secondary DPI Options -->
+                <div class="space-y-3 mb-6">
+                    <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-3.5 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-300 block">Standard Print Size (150 DPI)</span>
+                            <span class="text-sm font-bold text-slate-100" id="print150Size">40.0 × 26.7 inches</span>
+                        </div>
+                        <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded font-medium">Good for Wall Art</span>
+                    </div>
+                    <div class="bg-slate-950/40 border border-slate-800 rounded-xl p-3.5 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-300 block">Large Format / Billboard (72 DPI)</span>
+                            <span class="text-sm font-bold text-slate-100" id="print72Size">83.3 × 55.6 inches</span>
+                        </div>
+                        <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded font-medium">Viewed from Distance</span>
+                    </div>
+                </div>
+
+                <!-- Copy Specs Button -->
+                <button id="copyBtnRes" onclick="copyFullSpecs('resolutionToPrint')" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-medium text-white shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-copy"></i>
+                    <span id="copyBtnResText">Output Specs to Clipboard</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="border-t border-slate-800/80 bg-slate-900/30 py-6 mt-12 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>PhotoPrint Calc Professional • Standardized for Professional Photographers & Print Labs at 300 DPI.</p>
+        </div>
+    </footer>
+
+    <!-- Info / Guide Modal -->
+    <div id="infoModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl relative">
+            <button onclick="closeInfoModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-question text-indigo-400"></i>
+                Understanding Print Resolution (DPI & PPI)
+            </h3>
+            <div class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                <p><strong>What is 300 DPI?</strong> DPI stands for Dots Per Inch (often interchangeable with PPI or Pixels Per Inch for digital screens). 300 DPI is the universal gold standard for high-end professional photo printing, ensuring crisp details with no pixelation when held at normal viewing distance.</p>
+                <p><strong>Inches to Pixels:</strong> If you are designing a photo album, poster, or print layout, knowing the exact pixel dimensions required guarantees your lab won't stretch or compress your images.</p>
+                <p><strong>Resolution to Max Print:</strong> If you have an image file from your camera or phone, this calculation tells you the largest physical size you can print before quality degrades.</p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-800 flex justify-end">
+                <button onclick="closeInfoModal()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state for unit system: 'in' or 'cm'
+        let currentUnit = 'in'; // default inches
+
+        function toggleUnitSystem() {
+            currentUnit = currentUnit === 'in' ? 'cm' : 'in';
+            const btnText = document.getElementById('unitToggleText');
+            const labelW = document.getElementById('labelWidthIn');
+            const labelH = document.getElementById('labelHeightIn');
+            const unitLabels = document.querySelectorAll('.unit-label-in');
+
+            if (currentUnit === 'cm') {
+                btnText.textContent = "Unit: Centimeters (cm)";
+                labelW.textContent = "Width (Centimeters)";
+                labelH.textContent = "Height (Centimeters)";
+                unitLabels.forEach(el => el.textContent = "cm");
+                
+                let wInput = document.getElementById('inputWidthInches');
+                let hInput = document.getElementById('inputHeightInches');
+                wInput.value = (parseFloat(wInput.value) * 2.54).toFixed(1);
+                hInput.value = (parseFloat(hInput.value) * 2.54).toFixed(1);
+            } else {
+                btnText.textContent = "Unit: Inches (in)";
+                labelW.textContent = "Width (Inches)";
+                labelH.textContent = "Height (Inches)";
+                unitLabels.forEach(el => el.textContent = "in");
+
+                let wInput = document.getElementById('inputWidthInches');
+                let hInput = document.getElementById('inputHeightInches');
+                wInput.value = (parseFloat(wInput.value) / 2.54).toFixed(1);
+                hInput.value = (parseFloat(hInput.value) / 2.54).toFixed(1);
+            }
+            calculateInchesToPixels();
+            showToast(`Switched unit to ${currentUnit === 'in' ? 'Inches' : 'Centimeters'}`);
+        }
+
+        function switchTab(tabId) {
+            const tabInches = document.getElementById('tabInchesToPixels');
+            const tabRes = document.getElementById('tabResolutionToPrint');
+            const secInches = document.getElementById('sectionInchesToPixels');
+            const secRes = document.getElementById('sectionResolutionToPrint');
+
+            if (tabId === 'inchesToPixels') {
+                tabInches.className = "px-5 py-2.5 rounded-xl text-sm font-medium transition flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-600/30";
+                tabRes.className = "px-5 py-2.5 rounded-xl text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/50";
+                secInches.classList.remove('hidden');
+                secRes.classList.add('hidden');
+                calculateInchesToPixels();
+            } else {
+                tabRes.className = "px-5 py-2.5 rounded-xl text-sm font-medium transition flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-600/30";
+                tabInches.className = "px-5 py-2.5 rounded-xl text-sm font-medium transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/50";
+                secRes.classList.remove('hidden');
+                secInches.classList.add('hidden');
+                calculateResolutionToPrint();
+            }
+        }
+
+        function applyPreset(w, h) {
+            if (currentUnit === 'cm') {
+                w = parseFloat((w * 2.54).toFixed(1));
+                h = parseFloat((h * 2.54).toFixed(1));
+            }
+            document.getElementById('inputWidthInches').value = w;
+            document.getElementById('inputHeightInches').value = h;
+            calculateInchesToPixels();
+            showToast(`Applied preset: ${w} × ${h} ${currentUnit}`);
+        }
+
+        function applyResPreset(w, h) {
+            document.getElementById('inputPixelWidth').value = w;
+            document.getElementById('inputPixelHeight').value = h;
+            calculateResolutionToPrint();
+            showToast(`Applied preset: ${w} × ${h} px`);
+        }
+
+        function updateDpiDisplay() {
+            const dpi = document.getElementById('inputDpi').value;
+            document.getElementById('dpiValueDisplay').textContent = dpi + ' DPI';
+            calculateInchesToPixels();
+        }
+
+        function gcd(a, b) {
+            return b === 0 ? a : gcd(b, a % b);
+        }
+
+        function calculateInchesToPixels() {
+            let rawW = parseFloat(document.getElementById('inputWidthInches').value) || 0;
+            let rawH = parseFloat(document.getElementById('inputHeightInches').value) || 0;
+            let dpi = parseInt(document.getElementById('inputDpi').value) || 300;
+
+            let widthIn = currentUnit === 'cm' ? rawW / 2.54 : rawW;
+            let heightIn = currentUnit === 'cm' ? rawH / 2.54 : rawH;
+
+            let pixelWidth = Math.round(widthIn * dpi);
+            let pixelHeight = Math.round(heightIn * dpi);
+            let megapixels = ((pixelWidth * pixelHeight) / 1000000).toFixed(2);
+
+            document.getElementById('resPixelOutput').textContent = `${pixelWidth.toLocaleString()} × ${pixelHeight.toLocaleString()}`;
+            document.getElementById('resPixelTotal').textContent = `${megapixels} Megapixels (${dpi} DPI)`;
+
+            let divisor = gcd(pixelWidth, pixelHeight);
+            let ratioW = pixelWidth / divisor;
+            let ratioH = pixelHeight / divisor;
+            let ratioString = `${ratioW}:${ratioH}`;
+            let decimalRatio = (widthIn / heightIn).toFixed(2);
+            document.getElementById('resAspectRatio').textContent = `${ratioString} (${decimalRatio})`;
+
+            let widthCm = (widthIn * 2.54).toFixed(1);
+            let heightCm = (heightIn * 2.54).toFixed(1);
+            document.getElementById('resPhysicalSize').textContent = `${widthIn.toFixed(1)} × ${heightIn.toFixed(1)} in (${widthCm} × ${heightCm} cm)`;
+
+            let tierEl = document.getElementById('resQualityTier');
+            if (dpi >= 300) {
+                tierEl.innerHTML = '<i class="fa-solid fa-circle-check text-xs"></i> Museum / High Grade';
+                tierEl.className = "font-semibold text-emerald-400 flex items-center gap-1.5";
+            } else if (dpi >= 150) {
+                tierEl.innerHTML = '<i class="fa-solid fa-circle-exclamation text-xs"></i> Standard / Good';
+                tierEl.className = "font-semibold text-amber-400 flex items-center gap-1.5";
+            } else {
+                tierEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-xs"></i> Low / Draft Quality';
+                tierEl.className = "font-semibold text-rose-400 flex items-center gap-1.5";
+            }
+        }
+
+        function calculateResolutionToPrint() {
+            let pxW = parseInt(document.getElementById('inputPixelWidth').value) || 0;
+            let pxH = parseInt(document.getElementById('inputPixelHeight').value) || 0;
+
+            let megapixels = ((pxW * pxH) / 1000000).toFixed(1);
+            document.getElementById('maxMpDisplay').textContent = `${megapixels} MP`;
+
+            let divisor = gcd(pxW, pxH);
+            document.getElementById('maxRatioDisplay').textContent = `${pxW / divisor}:${pxH / divisor}`;
+
+            let in300W = (pxW / 300).toFixed(1);
+            let in300H = (pxH / 300).toFixed(1);
+            let cm300W = (in300W * 2.54).toFixed(1);
+            let cm300H = (in300H * 2.54).toFixed(1);
+
+            document.getElementById('print300Size').textContent = `${in300W} × ${in300H} inches`;
+            document.getElementById('print300Metric').textContent = `${cm300W} × ${cm300H} cm (Gallery Standard)`;
+
+            let in150W = (pxW / 150).toFixed(1);
+            let in150H = (pxH / 150).toFixed(1);
+            document.getElementById('print150Size').textContent = `${in150W} × ${in150H} inches`;
+
+            let in72W = (pxW / 72).toFixed(1);
+            let in72H = (pxH / 72).toFixed(1);
+            document.getElementById('print72Size').textContent = `${in72W} × ${in72H} inches`;
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(`Copied "${text}" to clipboard!`);
+            } catch (err) {
+                showToast('Failed to copy text', true);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function copyFullSpecs(section) {
+            let summary = "";
+            let btnId = "";
+            let textSpanId = "";
+
+            if (section === 'inchesToPixels') {
+                let px = document.getElementById('resPixelOutput').textContent;
+                let size = document.getElementById('resPhysicalSize').textContent;
+                let ratio = document.getElementById('resAspectRatio').textContent;
+                let dpi = document.getElementById('inputDpi').value;
+                summary = `PhotoPrint Specs - Inches to Pixels\nPhysical Size: ${size}\nTarget DPI: ${dpi}\nRequired Pixels: ${px}\nAspect Ratio: ${ratio}`;
+                btnId = 'copyBtnInches';
+                textSpanId = 'copyBtnInchesText';
+            } else {
+                let size300 = document.getElementById('print300Size').textContent;
+                let size150 = document.getElementById('print150Size').textContent;
+                let size72 = document.getElementById('print72Size').textContent;
+                let pxW = document.getElementById('inputPixelWidth').value;
+                let pxH = document.getElementById('inputPixelHeight').value;
+                summary = `PhotoPrint Specs - Resolution Analysis\nImage Resolution: ${pxW} x ${pxH} px\nMax 300 DPI Print: ${size300}\nStandard 150 DPI Print: ${size150}\nLarge 72 DPI Print: ${size72}`;
+                btnId = 'copyBtnRes';
+                textSpanId = 'copyBtnResText';
+            }
+
+            const textArea = document.createElement("textarea");
+            textArea.value = summary;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('Full specification output copied to clipboard!');
+                
+                // Visual feedback on button
+                const btnText = document.getElementById(textSpanId);
+                const originalText = btnText.textContent;
+                btnText.textContent = "Copied to Clipboard!";
+                const btn = document.getElementById(btnId);
+                btn.classList.add('bg-emerald-600');
+                btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
+
+                setTimeout(() => {
+                    btnText.textContent = originalText;
+                    btn.classList.remove('bg-emerald-600');
+                    btn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
+                }, 2000);
+
+            } catch (err) {
+                showToast('Failed to copy specification summary', true);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function openInfoModal() {
+            document.getElementById('infoModal').classList.remove('hidden');
+        }
+
+        function closeInfoModal() {
+            document.getElementById('infoModal').classList.add('hidden');
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMessage');
+            msgEl.textContent = message;
+            toast.className = `fixed bottom-6 right-6 z-50 transform translate-y-0 opacity-100 transition-all duration-300 ${isError ? 'bg-rose-600' : 'bg-emerald-600'} text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-medium`;
+            
+            setTimeout(() => {
+                toast.className = "fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-sm font-medium";
+            }, 3000);
+        }
+
+        window.onload = function() {
+            calculateInchesToPixels();
+            calculateResolutionToPrint();
+        }
+    </script>
+</body>
+</html>
